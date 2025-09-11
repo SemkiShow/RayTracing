@@ -1,11 +1,12 @@
-#include <iostream>
+#include <fstream>
 
 int main()
 {
     int width = 256;
     int height = 256;
 
-    std::cout << "P3\n" << width << ' ' << height << "\n255\n";
+    std::ofstream output("image.ppm");
+    output << "P3\n" << width << ' ' << height << "\n255\n";
 
     for (int i = 0; i < height; i++)
     {
@@ -15,7 +16,8 @@ int main()
             int g = i * 1.0 / (height - 1) * 255;
             int b = 0.0 * 255;
 
-            std::cout << r << ' ' << g << ' ' << b << '\n';
+            output << r << ' ' << g << ' ' << b << '\n';
         }
     }
+    output.close();
 }
