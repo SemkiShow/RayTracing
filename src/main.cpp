@@ -2,8 +2,21 @@
 #include "Ray.hpp"
 #include <fstream>
 
+bool HitSphere(const Point3& center, double radius, const Ray& ray)
+{
+    Vector3 oc = center - ray.origin();
+    double a = Dot(ray.direction(), ray.direction());
+    double b = -2.0 * Dot(ray.direction(), oc);
+    double c = Dot(oc, oc) - radius * radius;
+    double discriminant = b * b - 4 * a * c;
+    return (discriminant >= 0);
+}
+
 Color RayColor(const Ray& ray)
 {
+    if (HitSphere(Point3(0,0,-1), 0.5, ray))
+        return Color(1, 0, 0);
+
     Vector3 unitDirection = UnitVector(ray.direction());
     double a = 0.5 * (unitDirection.y() + 1.0);
     return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
@@ -13,8 +26,8 @@ int main()
 {
     // Image
     double aspectRatio = 16.0 / 9;
-    int imageWidth = 400;
-    int imageHeight = imageWidth / aspectRatio;
+    int imageHeight = 480;
+    int imageWidth = imageHeight * aspectRatio;
     imageHeight = std::max(1, imageHeight);
 
     // Camera
