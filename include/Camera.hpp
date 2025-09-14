@@ -10,6 +10,7 @@ class Camera
     double aspectRatio = 16.0 / 9;
     int imageHeight = 480;
     int samplesPerPixel = 10;
+    int maxDepth = 10;
 
     void render(const Hittable& world)
     {
@@ -27,7 +28,7 @@ class Camera
                 for (int k = 0; k < samplesPerPixel; k++)
                 {
                     Ray ray = GetRay(i, j);
-                    color += RayColor(ray, world);
+                    color += RayColor(ray, maxDepth, world);
                 }
                 WriteColor(output, pixelSamplesScale * color);
             }
@@ -92,12 +93,16 @@ class Camera
         return Vector3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
     }
 
-    Color RayColor(const Ray& ray, const Hittable& world) const
+    Color RayColor(const Ray& ray, int depth, const Hittable& world) const
     {
+        // If we've exceeded the ray bounce limit, no more light is gathered.
+        if (depth <= 0) return Color(0, 0, 0);
+
         HitRecord rec;
-        if (world.hit(ray, Interval(0, infinity), rec))
+        if (world.hit(ray, Interval(0.001, infinity), rec))
         {
-            return 0.5 * (rec.normal + Color(1, 1, 1));
+            Vector3 direction = rec.normal + RandomUnitVector();
+            return 0.5 * RayColor(Ray(rec.p, direction), depth - 1, world);
         }
 
         Vector3 unitDirection = UnitVector(ray.direction());

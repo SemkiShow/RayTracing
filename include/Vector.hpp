@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utils.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -38,8 +39,14 @@ class Vector3
     Vector3& operator/=(double t) { return *this *= 1 / t; }
 
     double length() const { return std::sqrt(lengthSquared()); }
-
     double lengthSquared() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
+
+    static Vector3 random() { return Vector3(RandomDouble(), RandomDouble(), RandomDouble()); }
+
+    static Vector3 random(double min, double max)
+    {
+        return Vector3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
+    }
 };
 
 using Point3 = Vector3;
@@ -85,3 +92,22 @@ inline Vector3 Cross(const Vector3& u, const Vector3& v)
 }
 
 inline Vector3 UnitVector(const Vector3& v) { return v / v.length(); }
+
+inline Vector3 RandomUnitVector()
+{
+    while (true)
+    {
+        Vector3 p = Vector3::random(-1, 1);
+        double lensq = p.lengthSquared();
+        if (1e-160 < lensq && lensq <= 1) return p / sqrt(lensq);
+    }
+}
+
+inline Vector3 RandomOnHemisphere(const Vector3& normal)
+{
+    Vector3 onUnitSphere = RandomUnitVector();
+    if (Dot(onUnitSphere, normal) > 0.0) // In the same hemisphere as the normal
+        return onUnitSphere;
+    else
+        return -onUnitSphere;
+}
