@@ -2,6 +2,7 @@
 
 #include "Color.hpp"
 #include "Hittable.hpp"
+#include "Material.hpp"
 #include <fstream>
 
 class Camera
@@ -101,8 +102,11 @@ class Camera
         HitRecord rec;
         if (world.hit(ray, Interval(0.001, infinity), rec))
         {
-            Vector3 direction = rec.normal + RandomUnitVector();
-            return 0.5 * RayColor(Ray(rec.p, direction), depth - 1, world);
+            Ray scattered;
+            Color attenuation;
+            if (rec.mat->scatter(ray, rec, attenuation, scattered))
+                return attenuation * RayColor(scattered, depth - 1, world);
+            return Color(0, 0, 0);
         }
 
         Vector3 unitDirection = UnitVector(ray.direction());

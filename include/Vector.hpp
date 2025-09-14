@@ -39,7 +39,15 @@ class Vector3
     Vector3& operator/=(double t) { return *this *= 1 / t; }
 
     double length() const { return std::sqrt(lengthSquared()); }
+
     double lengthSquared() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
+
+    bool nearZero() const
+    {
+        // Return true if the vector is close to zero in all dimensions.
+        double s = 1e-8;
+        return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+    }
 
     static Vector3 random() { return Vector3(RandomDouble(), RandomDouble(), RandomDouble()); }
 
@@ -111,3 +119,5 @@ inline Vector3 RandomOnHemisphere(const Vector3& normal)
     else
         return -onUnitSphere;
 }
+
+inline Vector3 reflect(const Vector3& v, const Vector3& n) { return v - 2 * Dot(v, n) * n; }

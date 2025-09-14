@@ -1,13 +1,17 @@
 #pragma once
 
-#include "Ray.hpp"
 #include "Interval.hpp"
+#include "Ray.hpp"
+#include <memory>
+
+class Material;
 
 class HitRecord
 {
   public:
     Point3 p;
     Vector3 normal;
+    std::shared_ptr<Material> mat;
     double t;
     bool frontFace;
 
