@@ -34,10 +34,9 @@ void Camera::initialize()
     imageHeight = std::max(1, imageHeight);
 
     // Determine viewport dimensions.
-    double focalLength = (lookfrom - lookat).length();
     double theta = DegreesToRadians(vfov);
     double h = std::tan(theta / 2);
-    double viewportHeight = 2 * h * focalLength;
+    double viewportHeight = 2 * h * focusDistance;
     double viewportWidth = viewportHeight * (imageWidth * 1.0 / imageHeight);
     pixelSamplesScale = 1.0 / samplesPerPixel;
     cameraCenter = lookfrom;
@@ -56,8 +55,13 @@ void Camera::initialize()
     pixelDeltaV = viewportV / imageHeight;
 
     // Calculate the location of the upper left pixel.
-    Vector3 viewportUpperLeft = cameraCenter - (focalLength * w) - viewportU / 2 - viewportV / 2;
+    Vector3 viewportUpperLeft = cameraCenter - (focusDistance * w) - viewportU / 2 - viewportV / 2;
     pixel00Location = viewportUpperLeft + 0.5 * (pixelDeltaU + pixelDeltaV);
+
+    // Calculate the camera defocus disk basis vectors.
+    double defocusRadius = focusDistance * std::tan(DegreesToRadians(defocusAngle / 2));
+    defocusDiskU = u * defocusRadius;
+    defocusDiskV = v * defocusRadius;
 }
 
 Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const

@@ -101,6 +101,15 @@ inline Vector3 Cross(const Vector3& u, const Vector3& v)
 
 inline Vector3 UnitVector(const Vector3& v) { return v / v.length(); }
 
+inline Vector3 RandomInUnitDisk()
+{
+    while (true)
+    {
+        Vector3 p = Vector3(RandomDouble(-1, 1), RandomDouble(-1, 1), 0);
+        if (p.lengthSquared() < 1) return p;
+    }
+}
+
 inline Vector3 RandomUnitVector()
 {
     while (true)

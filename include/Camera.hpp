@@ -14,6 +14,8 @@ class Camera
     Point3 lookfrom = Point3(0, 0, 0);
     Point3 lookat = Point3(0, 0, -1);
     Vector3 vup = Vector3(0, 1, 0);
+    double defocusAngle = 0;
+    double focusDistance = 10;
 
     void render(const Hittable& world);
 
@@ -25,20 +27,22 @@ class Camera
     Vector3 pixelDeltaU;
     Vector3 pixelDeltaV;
     Vector3 u, v, w;
+    Vector3 defocusDiskU;
+    Vector3 defocusDiskV;
 
     void initialize();
 
     Ray GetRay(int i, int j) const
     {
-        // Construct a camera ray originating from the origin and directed at randomly sampled
-        // point around the pixel location i, j.
+        // Construct a camera ray originating from the defocus disk and directed at a randomly
+        // sampled point around the pixel location i, j.
 
-        auto offset = SampleSquare();
-        auto pixelSample =
+        Vector3 offset = SampleSquare();
+        Vector3 pixelSample =
             pixel00Location + ((j + offset.x()) * pixelDeltaU) + ((i + offset.y()) * pixelDeltaV);
 
-        auto rayOrigin = cameraCenter;
-        auto rayDirection = pixelSample - rayOrigin;
+        Point3 rayOrigin = (defocusAngle <= 0) ? cameraCenter : DefocusDiskSample();
+        Vector3 rayDirection = pixelSample - rayOrigin;
 
         return Ray(rayOrigin, rayDirection);
     }
@@ -47,6 +51,13 @@ class Camera
     {
         // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
         return Vector3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
+    }
+
+    Point3 DefocusDiskSample() const
+    {
+        // Returns a random point in the camera defocus disk.
+        Vector3 p = RandomInUnitDisk();
+        return cameraCenter + (p[0] * defocusDiskU) + (p[1] * defocusDiskV);
     }
 
     Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
