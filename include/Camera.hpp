@@ -9,6 +9,7 @@ class Camera
   public:
     double aspectRatio = 16.0 / 9;
     int imageHeight = 480;
+    int samplesPerPixel = 10;
 
     void render(const Hittable& world)
     {
@@ -22,12 +23,13 @@ class Camera
             std::clog << "\rScanlines remaining: " << (imageHeight - i) << ' ' << std::flush;
             for (int j = 0; j < imageWidth; j++)
             {
-                Vector3 pixelCenter = pixel00Location + (j * pixelDeltaU) + (i * pixelDeltaV);
-                Vector3 rayDirection = pixelCenter - cameraCenter;
-                Ray ray(cameraCenter, rayDirection);
-
-                Color color = RayColor(ray, world);
-                WriteColor(output, color);
+                Color color(0, 0, 0);
+                for (int k = 0; k < samplesPerPixel; k++)
+                {
+                    Ray ray = GetRay(i, j);
+                    color += RayColor(ray, world);
+                }
+                WriteColor(output, pixelSamplesScale * color);
             }
         }
         std::clog << "\rDone.                 \n";
@@ -36,6 +38,7 @@ class Camera
 
   private:
     int imageWidth;
+    double pixelSamplesScale;
     Point3 cameraCenter;
     Point3 pixel00Location;
     Vector3 pixelDeltaU;
@@ -51,6 +54,7 @@ class Camera
         double focalLength = 1.0;
         double viewportHeight = 2.0;
         double viewportWidth = viewportHeight * (imageWidth * 1.0 / imageHeight);
+        pixelSamplesScale = 1.0 / samplesPerPixel;
         cameraCenter = Point3(0, 0, 0);
 
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
@@ -65,6 +69,27 @@ class Camera
         Vector3 viewportUpperLeft =
             cameraCenter - Vector3(0, 0, focalLength) - viewportU / 2 - viewportV / 2;
         pixel00Location = viewportUpperLeft + 0.5 * (pixelDeltaU + pixelDeltaV);
+    }
+
+    Ray GetRay(int i, int j) const
+    {
+        // Construct a camera ray originating from the origin and directed at randomly sampled
+        // point around the pixel location i, j.
+
+        auto offset = SampleSquare();
+        auto pixelSample =
+            pixel00Location + ((j + offset.x()) * pixelDeltaU) + ((i + offset.y()) * pixelDeltaV);
+
+        auto rayOrigin = cameraCenter;
+        auto rayDirection = pixelSample - rayOrigin;
+
+        return Ray(rayOrigin, rayDirection);
+    }
+
+    Vector3 SampleSquare() const
+    {
+        // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+        return Vector3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
     }
 
     Color RayColor(const Ray& ray, const Hittable& world) const
