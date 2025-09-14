@@ -2,8 +2,6 @@
 
 #include "Color.hpp"
 #include "Hittable.hpp"
-#include "Material.hpp"
-#include <fstream>
 
 class Camera
 {
@@ -12,31 +10,12 @@ class Camera
     int imageHeight = 480;
     int samplesPerPixel = 10;
     int maxDepth = 10;
+    double vfov = 90;
+    Point3 lookfrom = Point3(0, 0, 0);
+    Point3 lookat = Point3(0, 0, -1);
+    Vector3 vup = Vector3(0, 1, 0);
 
-    void render(const Hittable& world)
-    {
-        initialize();
-
-        std::ofstream output("image.ppm");
-        output << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
-
-        for (int i = 0; i < imageHeight; i++)
-        {
-            std::clog << "\rScanlines remaining: " << (imageHeight - i) << ' ' << std::flush;
-            for (int j = 0; j < imageWidth; j++)
-            {
-                Color color(0, 0, 0);
-                for (int k = 0; k < samplesPerPixel; k++)
-                {
-                    Ray ray = GetRay(i, j);
-                    color += RayColor(ray, maxDepth, world);
-                }
-                WriteColor(output, pixelSamplesScale * color);
-            }
-        }
-        std::clog << "\rDone.                 \n";
-        output.close();
-    }
+    void render(const Hittable& world);
 
   private:
     int imageWidth;
@@ -45,33 +24,9 @@ class Camera
     Point3 pixel00Location;
     Vector3 pixelDeltaU;
     Vector3 pixelDeltaV;
+    Vector3 u, v, w;
 
-    void initialize()
-    {
-        // Image
-        imageWidth = imageHeight * aspectRatio;
-        imageHeight = std::max(1, imageHeight);
-
-        // Determine viewport dimensions.
-        double focalLength = 1.0;
-        double viewportHeight = 2.0;
-        double viewportWidth = viewportHeight * (imageWidth * 1.0 / imageHeight);
-        pixelSamplesScale = 1.0 / samplesPerPixel;
-        cameraCenter = Point3(0, 0, 0);
-
-        // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        Vector3 viewportU = Vector3(viewportWidth, 0, 0);
-        Vector3 viewportV = Vector3(0, -viewportHeight, 0);
-
-        // Calculate the horizontal and vertical delta vectors from pixel to pixel.
-        pixelDeltaU = viewportU / imageWidth;
-        pixelDeltaV = viewportV / imageHeight;
-
-        // Calculate the location of the upper left pixel.
-        Vector3 viewportUpperLeft =
-            cameraCenter - Vector3(0, 0, focalLength) - viewportU / 2 - viewportV / 2;
-        pixel00Location = viewportUpperLeft + 0.5 * (pixelDeltaU + pixelDeltaV);
-    }
+    void initialize();
 
     Ray GetRay(int i, int j) const
     {
@@ -94,23 +49,5 @@ class Camera
         return Vector3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
     }
 
-    Color RayColor(const Ray& ray, int depth, const Hittable& world) const
-    {
-        // If we've exceeded the ray bounce limit, no more light is gathered.
-        if (depth <= 0) return Color(0, 0, 0);
-
-        HitRecord rec;
-        if (world.hit(ray, Interval(0.001, infinity), rec))
-        {
-            Ray scattered;
-            Color attenuation;
-            if (rec.mat->scatter(ray, rec, attenuation, scattered))
-                return attenuation * RayColor(scattered, depth - 1, world);
-            return Color(0, 0, 0);
-        }
-
-        Vector3 unitDirection = UnitVector(ray.direction());
-        double a = 0.5 * (unitDirection.y() + 1.0);
-        return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
-    }
+    Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
 };

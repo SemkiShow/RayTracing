@@ -24,6 +24,10 @@ int main()
     camera.imageHeight = 480;
     camera.samplesPerPixel = 10;
     camera.maxDepth = 50;
+    camera.vfov = 90;
+    camera.lookfrom = Point3(-2, 2, 1);
+    camera.lookat = Point3(0, 0, -1);
+    camera.vup = Vector3(0, 1, 0);
 
     camera.render(world);
 }
