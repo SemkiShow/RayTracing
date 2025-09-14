@@ -7,23 +7,16 @@
 const size_t maxThreads = std::fmax(1, std::thread::hardware_concurrency());
 std::vector<Color> outputBuffer;
 
-void RenderThread(const int threadID, const Hittable& world, const Camera& camera)
+void RenderThread(const int threadID, const Hittable& world, const Camera& camera,
+                  const int samplesPerPixel)
 {
     for (size_t i = threadID * camera.imageHeight / maxThreads;
          i < (threadID + 1) * camera.imageHeight / maxThreads; i++)
     {
-        if (threadID == 0)
-            std::clog << "\rScanlines remaining: " << (camera.imageHeight / maxThreads - i) << ' ' << std::flush;
-
         for (int j = 0; j < camera.imageWidth; j++)
         {
-            Color color(0, 0, 0);
-            for (int k = 0; k < camera.samplesPerPixel; k++)
-            {
-                Ray ray = camera.GetRay(i, j);
-                color += camera.RayColor(ray, camera.maxDepth, world);
-            }
-            outputBuffer[i * camera.imageWidth + j] = camera.pixelSamplesScale * color;
+            Ray ray = camera.GetRay(i, j);
+            outputBuffer[i * camera.imageWidth + j] += camera.RayColor(ray, camera.maxDepth, world);
         }
     }
 }
@@ -31,26 +24,30 @@ void RenderThread(const int threadID, const Hittable& world, const Camera& camer
 void Camera::render(const Hittable& world)
 {
     initialize();
+    outputBuffer.resize(imageHeight * imageWidth, Color(0, 0, 0));
 
-    outputBuffer.resize(imageHeight * imageWidth);
-
-    std::thread threads[maxThreads];
-    for (size_t i = 0; i < maxThreads; i++)
-        threads[i] = std::thread(RenderThread, i, std::cref(world), std::cref(*this));
-    for (size_t i = 0; i < maxThreads; i++)
-        threads[i].join();
-
-    std::ofstream output("image.ppm");
-    output << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
-
-    for (int i = 0; i < imageHeight; i++)
+    for (size_t k = 0; k < samplesPerPixel; k++)
     {
-        for (int j = 0; j < imageWidth; j++)
+        std::clog << "\rSample iteration: " << k << std::flush;
+
+        std::thread threads[maxThreads];
+        for (size_t i = 0; i < maxThreads; i++)
+            threads[i] = std::thread(RenderThread, i, std::cref(world), std::cref(*this), k + 1);
+        for (size_t i = 0; i < maxThreads; i++)
+            threads[i].join();
+
+        std::ofstream output("image.ppm");
+        output << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+
+        for (int i = 0; i < imageHeight; i++)
         {
-            WriteColor(output, outputBuffer[i * imageWidth + j]);
+            for (int j = 0; j < imageWidth; j++)
+            {
+                WriteColor(output, outputBuffer[i * imageWidth + j] / (k + 1));
+            }
         }
+        output.close();
     }
-    output.close();
 }
 
 void Camera::initialize()
