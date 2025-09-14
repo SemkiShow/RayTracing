@@ -7,7 +7,9 @@ class Camera
 {
   public:
     double aspectRatio = 16.0 / 9;
-    int imageHeight = 480;
+    int imageHeight = 720;
+    int imageWidth = 1280;
+    double pixelSamplesScale = 1;
     int samplesPerPixel = 10;
     int maxDepth = 10;
     double vfov = 90;
@@ -18,19 +20,6 @@ class Camera
     double focusDistance = 10;
 
     void render(const Hittable& world);
-
-  private:
-    int imageWidth;
-    double pixelSamplesScale;
-    Point3 cameraCenter;
-    Point3 pixel00Location;
-    Vector3 pixelDeltaU;
-    Vector3 pixelDeltaV;
-    Vector3 u, v, w;
-    Vector3 defocusDiskU;
-    Vector3 defocusDiskV;
-
-    void initialize();
 
     Ray GetRay(int i, int j) const
     {
@@ -47,6 +36,19 @@ class Camera
         return Ray(rayOrigin, rayDirection);
     }
 
+    Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
+
+  private:
+    Point3 cameraCenter;
+    Point3 pixel00Location;
+    Vector3 pixelDeltaU;
+    Vector3 pixelDeltaV;
+    Vector3 u, v, w;
+    Vector3 defocusDiskU;
+    Vector3 defocusDiskV;
+
+    void initialize();
+
     Vector3 SampleSquare() const
     {
         // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
@@ -59,6 +61,4 @@ class Camera
         Vector3 p = RandomInUnitDisk();
         return cameraCenter + (p[0] * defocusDiskU) + (p[1] * defocusDiskV);
     }
-
-    Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
 };

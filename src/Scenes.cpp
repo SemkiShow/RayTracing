@@ -89,8 +89,8 @@ void Scene2()
 
     Camera camera;
     camera.aspectRatio = 16.0 / 9.0;
-    camera.imageHeight = 1200;
-    camera.samplesPerPixel = 10;
+    camera.imageHeight = 720;
+    camera.samplesPerPixel = 500;
     camera.maxDepth = 50;
     camera.vfov = 20;
     camera.lookfrom = Point3(13, 2, 3);

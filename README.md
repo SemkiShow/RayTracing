@@ -1,6 +1,6 @@
 # Ray Tracing
 
-A ray tracer created by following a tutorial [Ray Tracing In One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+A ray tracer based on [Ray Tracing In One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
 ## How to run
 
@@ -14,7 +14,7 @@ A ray tracer created by following a tutorial [Ray Tracing In One Weekend](https:
 
 ## How to build
 
-### Executable
+<!-- ### Executable -->
 
 <!-- 1. Install Raylib following one of these tutorials based on your system: [Linux](https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux), [Windows](https://github.com/raysan5/raylib/wiki/Working-on-Windows), [macOS](https://github.com/raysan5/raylib/wiki/Working-on-macOS) -->
 1. Run 
