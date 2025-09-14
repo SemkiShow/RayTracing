@@ -1,21 +1,19 @@
 #include "Color.hpp"
+#include "Hittable.hpp"
+#include "HittableList.hpp"
+#include "Interval.hpp"
 #include "Ray.hpp"
+#include "Sphere.hpp"
+#include "Utils.hpp"
 #include <fstream>
 
-bool HitSphere(const Point3& center, double radius, const Ray& ray)
+Color RayColor(const Ray& ray, const Hittable& world)
 {
-    Vector3 oc = center - ray.origin();
-    double a = Dot(ray.direction(), ray.direction());
-    double b = -2.0 * Dot(ray.direction(), oc);
-    double c = Dot(oc, oc) - radius * radius;
-    double discriminant = b * b - 4 * a * c;
-    return (discriminant >= 0);
-}
-
-Color RayColor(const Ray& ray)
-{
-    if (HitSphere(Point3(0,0,-1), 0.5, ray))
-        return Color(1, 0, 0);
+    HitRecord rec;
+    if (world.hit(ray, Interval(0, infinity), rec))
+    {
+        return 0.5 * (rec.normal + Color(1, 1, 1));
+    }
 
     Vector3 unitDirection = UnitVector(ray.direction());
     double a = 0.5 * (unitDirection.y() + 1.0);
@@ -29,6 +27,11 @@ int main()
     int imageHeight = 480;
     int imageWidth = imageHeight * aspectRatio;
     imageHeight = std::max(1, imageHeight);
+
+    // World
+    HittableList world;
+    world.add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5));
+    world.add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100));
 
     // Camera
     double focalLength = 1.0;
@@ -61,7 +64,7 @@ int main()
             Vector3 rayDirection = pixelCenter - cameraCenter;
             Ray ray(cameraCenter, rayDirection);
 
-            Color color = RayColor(ray);
+            Color color = RayColor(ray, world);
             WriteColor(output, color);
         }
     }
